@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+# WaitWatch API — Session 2 started
 app = FastAPI(title="WaitWatch API", version="0.1.0")
 
 
