@@ -11,7 +11,7 @@ import 'package:waitwatch/screens/venue_list_screen.dart';
 const sampleVenues = [
   Venue(id: 1, name: 'C4', lat: 42, lng: -75, avgWaitMinutes: 5, reportCount: 1),
   Venue(id: 3, name: 'Hinman Dining', lat: 42, lng: -75, avgWaitMinutes: 25.4, reportCount: 3),
-  Venue(id: 5, name: 'Café Tempo', lat: 42, lng: -75, avgWaitMinutes: null, reportCount: 0),
+  Venue(id: 4, name: 'Marché (College-in-the-Woods)', lat: 42, lng: -75, avgWaitMinutes: null, reportCount: 0),
 ];
 
 /// Builds the screen with venuesProvider replaced by [venues] (no network).

@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from app.models import WaitReport
 from app.schemas import ReportCreate
+from app.seed import VENUES
 from app.services import venue_service
 from app.services.venue_service import VENUES_CACHE_KEY, VenueNotFound
 
@@ -19,10 +20,10 @@ def by_id(venues, venue_id):
 # ── compute_venue_stats: the averaging rules ──
 
 
-async def test_all_five_venues_listed_with_no_reports(db):
+async def test_every_venue_listed_with_no_reports(db):
     venues = await venue_service.compute_venue_stats(db)
 
-    assert len(venues) == 5
+    assert len(venues) == len(VENUES)
     assert all(v.avg_wait_minutes is None and v.report_count == 0 for v in venues)
 
 

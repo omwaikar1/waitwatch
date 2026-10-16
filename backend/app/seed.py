@@ -1,4 +1,4 @@
-"""Insert the 5 dining halls. Safe to run repeatedly.
+"""Insert or update the dining halls. Safe to run repeatedly.
 
 Run: docker compose exec backend python -m app.seed
 """
@@ -11,26 +11,31 @@ from sqlalchemy.dialects.postgresql import insert
 from app.db.session import SessionLocal, engine
 from app.models import Venue
 
-# Hard-coded for v1 (DECISIONS #9).
-# TODO: coordinates are approximate — verify each one on Google Maps.
+# Hard-coded for v1 (DECISIONS #9). Coordinates taken from Google Maps.
+# Keep this order: it decides the ids (1–4) on a fresh database.
 VENUES = [
-    {"name": "Chenango Champlain Collegiate Center (C4)", "lat": 42.0873, "lng": -75.9640},
-    {"name": "Appalachian Collegiate Center", "lat": 42.0930, "lng": -75.9750},
-    {"name": "Hinman Dining", "lat": 42.0925, "lng": -75.9685},
-    {"name": "Marché (College-in-the-Woods)", "lat": 42.0862, "lng": -75.9738},
-    {"name": "Café Tempo", "lat": 42.0890, "lng": -75.9695},
+    {"name": "Chenango Champlain Collegiate Center (C4)", "lat": 42.08801694110123, "lng": -75.96314617033673},
+    {"name": "Appalachian Collegiate Center", "lat": 42.08575280503048, "lng": -75.96957153827712},
+    {"name": "Hinman Dining", "lat": 42.08643873907953, "lng": -75.97271494875632},
+    {"name": "Marché (College-in-the-Woods)", "lat": 42.08593198571488, "lng": -75.96644718627341},
 ]
 
 
 async def seed() -> None:
     async with SessionLocal() as session:
-        # ON CONFLICT DO NOTHING relies on the unique constraint on venues.name
-        stmt = insert(Venue).values(VENUES).on_conflict_do_nothing(index_elements=["name"])
-        result = await session.execute(stmt)
+        # Upsert on the unique name: new halls are inserted, existing ones get
+        # the latest coordinates. Halls removed from VENUES are NOT deleted here
+        # (that would cascade-delete their reports) — remove those by hand.
+        stmt = insert(Venue).values(VENUES)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["name"],
+            set_={"lat": stmt.excluded.lat, "lng": stmt.excluded.lng},
+        )
+        await session.execute(stmt)
         await session.commit()
 
         total = await session.scalar(select(func.count()).select_from(Venue))
-        print(f"Inserted {result.rowcount} new venue(s). Total venues: {total}")
+        print(f"Upserted {len(VENUES)} venue(s). Total venues: {total}")
 
     await engine.dispose()
 

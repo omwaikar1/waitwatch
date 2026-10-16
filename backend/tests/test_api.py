@@ -2,6 +2,8 @@
 
 import uuid
 
+from app.seed import VENUES
+
 
 def report_body(minutes=15, device_id=None):
     return {"device_id": str(device_id or uuid.uuid4()), "wait_minutes": minutes}
@@ -19,7 +21,7 @@ async def test_list_venues(client):
 
     assert response.status_code == 200
     venues = response.json()
-    assert len(venues) == 5
+    assert len(venues) == len(VENUES)
     assert set(venues[0]) == {"id", "name", "lat", "lng", "avg_wait_minutes", "report_count"}
 
 
