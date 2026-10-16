@@ -28,5 +28,5 @@ frontend/build/
 # …except a future public README for GitHub
 !README.md
 
-# All personal notes (CLAUDE.md, plan.md, DECISIONS.md, LEARNING.md, todo.md)
+# Personal notes
 notes/
