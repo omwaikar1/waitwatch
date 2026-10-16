@@ -21,3 +21,8 @@ frontend/build/
 
 # Testing
 .pytest_cache/
+
+# Personal reference notes (local only, never committed)
+*.md
+# …except a future public README for GitHub
+!README.md
