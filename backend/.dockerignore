@@ -1,0 +1,5 @@
+# Keep secrets and junk out of the image (COPY . . copies everything else)
+.env
+__pycache__/
+*.pyc
+.pytest_cache/

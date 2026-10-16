@@ -1,5 +1,6 @@
-# Environment variables — never commit these
-backend/.env
+# Environment variables — never commit these (any folder: backend/.env, deploy/.env)
+.env
+!.env.example
 
 # Python
 __pycache__/

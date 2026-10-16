@@ -1,0 +1,6 @@
+# Caddy gets and renews a Let's Encrypt HTTPS certificate for $DOMAIN automatically,
+# redirects http:// to https://, and forwards requests to the FastAPI container.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy backend:8000
+}

@@ -15,4 +15,8 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Production default: no --reload (docker-compose.yml adds it back for local dev).
+# One process only: the stale-report scheduler runs inside it (DECISIONS #5), so
+# extra workers would run the job several times.
+# --proxy-headers: trust X-Forwarded-* from Caddy so logs show real client IPs.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

@@ -1,0 +1,82 @@
+# Production stack. Run from this folder on the server:
+#   docker compose -f docker-compose.prod.yml up -d --build
+# Needs deploy/.env (see .env.example) with DOMAIN and POSTGRES_PASSWORD.
+name: waitwatch-prod # distinct from the local dev project ("waitwatch")
+
+# Cap each container's logs at 3 x 10 MB so they can't fill the 20 GB disk
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: waitwatch
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+      POSTGRES_DB: waitwatch
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waitwatch -d waitwatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No "ports:": Postgres is reachable only by other containers, never the internet
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    logging: *logging
+    # Pure cache: no disk snapshots needed (Postgres is the source of truth)
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      DATABASE_URL: postgresql+asyncpg://waitwatch:${POSTGRES_PASSWORD}@db:5432/waitwatch
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    logging: *logging
+    # The only service the internet can reach
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # HTTPS certificates; keep them so we don't re-request on every restart
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
