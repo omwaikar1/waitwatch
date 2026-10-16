@@ -12,8 +12,10 @@ final dioProvider = Provider<Dio>((ref) {
   return Dio(
     BaseOptions(
       baseUrl: apiBaseUrl,
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 5),
+      // 10s, not 5s: a phone on weak signal (or just waking up) can need more than
+      // 5s for the first DNS + TCP + TLS connection to the live server.
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
     ),
   );
 });
