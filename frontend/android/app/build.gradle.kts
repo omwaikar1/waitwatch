@@ -8,7 +8,8 @@ plugins {
 android {
     namespace = "com.omwaikar.waitwatch"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // shared_preferences_android needs NDK 27; NDKs are backward compatible
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
